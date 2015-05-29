@@ -1,0 +1,22 @@
+dependencies:
+  cache_directories:
+    - cache_dependencies
+  pre:
+    - chmod +x bin/*.sh
+    - mkdir -p cache_dependencies
+    - bin/dependencies.sh
+test:
+  override:
+    - bin/test.sh
+deployment:
+  release:
+    owner: Billiam
+    branch: master
+    commands:
+      - bin/package.sh
+      - bin/release.sh
+  package:
+    owner: Billiam
+    branch: develop
+    commands:
+      - bin/package.sh
