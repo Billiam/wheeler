@@ -162,6 +162,8 @@ function Wizard:getConfig()
     config.settings.gears = { hide = true }
   end
   
+  config.default = nil
+  
   return config
 end
 

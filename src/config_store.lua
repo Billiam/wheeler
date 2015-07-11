@@ -3,11 +3,17 @@ local Smallfolk = require('vendor.smallfolk')
 local Config = {}
 
 local conf
-local default = { settings = { rotation = 500 }, controls = {} }
+local default = { default = true, settings = { rotation = 500 }, controls = {} }
+
+local FILENAME = 'config'
+
+function Config.exists()
+  return love.filesystem.isFile(FILENAME)
+end
 
 function Config.load(force)
   if not conf or force then
-    local config = love.filesystem.read('config')
+    local config = love.filesystem.read(FILENAME)
     if not config then return default end
   
     local success, result = pcall(function() return Smallfolk.loads(config) end)
@@ -23,9 +29,7 @@ function Config.load(force)
 end
 
 function Config.save(config)
-  conf = config
-  
-  love.filesystem.write('config', Smallfolk.dumps(config))
+  love.filesystem.write(FILENAME, Smallfolk.dumps(config))
 end
 
 return Config
