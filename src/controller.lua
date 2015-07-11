@@ -12,8 +12,8 @@ Controller.mt = { __index = Controller }
 function Controller.create()
   local instance = {
     data = {
-      range = 540
-    }
+    },
+    hidden = {}
   }
 
   setmetatable(instance, Controller.mt)
@@ -27,16 +27,16 @@ local function parseGear(control)
   return gear
 end
 
+function Controller:hide(control)
+  self.hidden[control] = true
+end
+
 function Controller:setGear(gear, value)
   if value > 0 then
     self.gear = gear
   elseif gear == self.gear then
     self.gear = Gear.NEUTRAL
   end
-end
-
-function Controller:rotation()
-  return self:get('wheel') * self:get('range')/2
 end
 
 function Controller:set(control, value)

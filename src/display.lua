@@ -3,7 +3,7 @@ local Resource = require('resource')
 local Display = {}
 
 local bar_height = 80
-local bar_width = 25
+local bar_width = 48
 
 local offset_x = 10
 local offset_y = 0
@@ -15,6 +15,13 @@ local wheel_y = wheel_radius + bar_height + offset_y - 10
 local hb_radius = 20
 local hb_x = wheel_radius
 local hb_y = wheel_y + wheel_radius + hb_radius + 15
+
+local bars = {'clutch', 'brake','throttle'}
+local bar_colors = {
+  clutch = {20, 50, 220},
+  brake = {180, 0, 0},
+  throttle = {0, 180, 0}
+}
 
 local function circleHub()
   love.graphics.circle("fill", wheel_x, wheel_y, wheel_radius - 10, 30)
@@ -32,6 +39,7 @@ local function draw_handbrake(amount)
   if amount == 0 then
     return
   end
+
   local startPosition = -0.5*math.pi
   love.graphics.setInvertedStencil(hbHubInner)
     love.graphics.arc('fill', hb_x, hb_y, hb_radius, startPosition, startPosition + math.pi * 2 * amount, 30)
@@ -46,30 +54,52 @@ local function draw_handbrake(amount)
   love.graphics.setStencil()
 end
 
-function Display.render(controller)
+local function draw_bar(amount, color, width, position)
+  local pos_x = offset_x + width * (position - 1)
+
+  local r, g, b = unpack(color)
+  love.graphics.setColor(r, g, b, 60)
+  love.graphics.rectangle('fill', pos_x, offset_y, width, bar_height)
+
+  if amount == 1 then
+    local bright = {}
+    for i, v in ipairs(color) do
+      bright[i] = math.max(v * 1.41, 255)
+    end
+    color = bright
+  end
+  local control_height = amount * bar_height
+
+  love.graphics.setColor(r, g, b, 255)
+  love.graphics.rectangle('fill', pos_x, offset_y + bar_height - control_height, width, control_height)
+end
+
+local function isHidden(control, settings)
+  return settings[control] and settings[control].hide
+end
+
+local function rotation(range, controller) 
+  range = range or 540
+  return range * controller:get('wheel') - range/2
+end
+
+function Display.render(controller, settings)
   love.graphics.setInvertedStencil(circleHub)
+    local visible_bars = {}
+    for i,control in ipairs(bars) do
+      if not isHidden(control, settings) then
+        table.insert(visible_bars, control)
+      end
+    end
 
-    love.graphics.setColor(200, 0, 0, 60)
-    love.graphics.rectangle('fill', offset_x, offset_y, bar_width, bar_height)
-
-    love.graphics.setColor(0, 200, 0, 60)
-    love.graphics.rectangle('fill', offset_x + bar_width, offset_y, bar_width, bar_height)
-
-    -- brake
-    local braking = controller:get('brake')
-
-    love.graphics.setColor(braking == 1 and 255 or 180, 0, 0, 255)
-    local brake_height = braking * bar_height
-    love.graphics.rectangle('fill', offset_x, offset_y + bar_height - brake_height, bar_width, brake_height)
-
-    -- gas
-    local throttle = controller:get('throttle')
-
-    local throttle_height = throttle * bar_height
-    love.graphics.setColor(0, throttle == 1 and 255 or 180, 0, 255)
-    love.graphics.rectangle('fill', offset_x + bar_width, offset_y + bar_height - throttle_height, bar_width, throttle_height)
+    local bar_count = #visible_bars
+    local display_width = bar_width/bar_count
     
-    local rot = controller:rotation()
+    for i,control in ipairs(visible_bars) do
+      draw_bar(controller:get(control), bar_colors[control], display_width, i)
+    end
+
+    local rot = rotation(settings.rotation, controller)
     love.graphics.setColor(50, 50, 50, 255)
     love.graphics.circle("fill", wheel_x, wheel_y, wheel_radius)
     
@@ -83,7 +113,6 @@ function Display.render(controller)
   love.graphics.print('8', 22, wheel_y - 23)
   love.graphics.setColor(255, 200, 255, 255)
   love.graphics.print(controller:get('gear'), 22, wheel_y - 23)
-
 
   -- handbrake
   love.graphics.setColor(0, 0, 0, 50)

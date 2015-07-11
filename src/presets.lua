@@ -1,5 +1,6 @@
 local configs = {
-  ["Logitech G27 Racing Wheel USB"] = {
+  ["6d049bc2000000000000504944564944"] = {
+      name = "Logitech G27 Racing Wheel USB",
       wheel = {axis = 1, range = 540},
       throttle = {axis = 2, invert = true},
       brake = {axis = 3, invert = true},
@@ -15,7 +16,8 @@ local configs = {
       gear_6 = { button = 14 },
       gear_reverse = { button = 15 },
   },
-  ["xinput"] = {
+  ["00000000000000000000000000000000"] = {
+      name = "xinput",
       wheel = {axis = 1, range = 180},
       throttle = {axis = 6},
       brake = {axis = 5},
@@ -23,7 +25,6 @@ local configs = {
     }
 }
 
-return {
-  ["6d049bc2000000000000504944564944"] = configs['Logitech G27 Racing Wheel USB'],
-  ["00000000000000000000000000000000"] = configs['xinput']
-}
+configs['78696e70757401000000000000000000'] = configs['00000000000000000000000000000000']
+
+return configs

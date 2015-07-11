@@ -1,114 +1,57 @@
-local configs = {
-  OVERRIDE = 'keys.conf'
-}
-
-local Loader = require('vendor.loader')
-local defaults = require('default_controls')
-
-local stub_joystick = {
-  stub = true,
-  getButtonCount = function()
-    return 0
-  end, 
-  getAxisCount = function()
-    return 0
-  end, 
-  getAxis = function()
-    return 0
-  end,
-  getAxes = function()end
-}
-
 local Mapper = {
-  joystick = stub_joystick,
+  joysticks = {}
 }
 Mapper.mt = { __index = Mapper }
 
-function Mapper.create(controller)
+function Mapper.create(controller, config)
   local instance = {
+    joysticks = {},
     controller = controller,
+    
+    userConfig = config,
+    
     config = {
-      buttons = {},
-      axes = {}
+      button = {},
+      axis = {}
     }
   }
 
   setmetatable(instance, Mapper.mt)
 
+  instance:initJoysticks()
+  instance:initConfig()  
+  
   return instance
 end
 
-function Mapper:setJoystick(joystick)
-  self.joystick = joystick
-  print(joystick:getGUID())
-
-  local config = self:getConfig(joystick)
-  self.config = self:parse(config)
+function Mapper:initJoysticks()
+  self.joysticks = {}
+  for i,joystick in ipairs(love.joystick.getJoysticks()) do
+    self.joysticks[joystick:getGUID()] = joystick  
+  end
 end
 
-function Mapper:loadUserConfig()
-  local content = love.filesystem.read(configs.OVERRIDE)
-
-  if not content then
-    return nil
-  end
-  local success, config = Loader(content)
-  return success and config or nil
+function Mapper:initConfig()
+  self:parseConfig(self.userConfig)
 end
 
-function Mapper:getConfig(joystick)
-  local userConfig = self:loadUserConfig()
-
-  if userConfig then
-    return userConfig
-  end
-
-  return defaults[joystick:getGUID()] or {}
-end
-
-function Mapper:parse(config)
-  local rotation = config.wheel and config.wheel.range
-  if rotation then
-    self.controller:set('range', rotation)
-  end
-
-  local config_groups = {
-    axes = {},
-    buttons = {},
-  }
-
-  for action, keys in pairs(config) do
-    local control_type
-    local element
-
-    local result = { action = action, invert = false}
-
-    if keys.button then
-      control_type = 'buttons'
-      element = keys.button
-    elseif keys.axis then
-      control_type = 'axes'
-      element = keys.axis
-      result.invert = keys.invert
-    end
-
-    if element then
-      element = tostring(element)
-      if not config_groups[control_type][element] then
-        config_groups[control_type][element] = {}
-      end
-
-      table.insert(config_groups[control_type][element], result)
+function Mapper:parseConfig(config)
+  -- group key configs by input type and joystick
+  for action, input in pairs(config) do
+    local joystick = self.joysticks[input.joystick]
+    if joystick then
+      self.config[input.type] = self.config[input.type] or {}
+      self.config[input.type][joystick] = self.config[input.type][joystick] or {}
+      self.config[input.type][joystick][input.input] = { action = action, invert = input.invert }
     end
   end
-
-  return config_groups
 end
 
-function Mapper:activate(joystick)
-  if self.joystick.stub then
-    self:setJoystick(joystick)
+function Mapper:addJoystick(joystick)
+  if self.userConfig[joystick:getID()] then
+    self.joysticks[joystick:getID()] = joystick
   end
+  self:initConfig()
 end
 
 function Mapper:setControls(types, value)
@@ -122,16 +65,15 @@ function Mapper:setControl(type, value)
 end
 
 function Mapper:setButton(joystick, button, value)
-  self:activate(joystick)
-  
-  if joystick ~= self.joystick then 
+  local config = self.config.button[joystick]
+  if not config then
     return
   end
   
   button = tostring(button)
-
-  if self.config.buttons[button] then
-    self:setControls(self.config.buttons[button], value)
+  local input = config[button]
+  if input then
+    self:setControl(input, value)
   end
 end
 
@@ -153,15 +95,10 @@ local function normalAxis(axis, inverted)
 end
 
 function Mapper:update()
-  for axis,controls in pairs(self.config.axes) do
-    for index,control in ipairs(controls) do
-      local value = self.joystick:getAxis(axis)
-
-      if control.action == 'wheel' then
-        self.controller:set('wheel', value)
-      else
-        self.controller:set(control.action, normalAxis(value, control.invert))
-      end
+  for joystick, axes in pairs(self.config.axis) do
+    for axis,input in pairs(axes) do
+      local value = joystick:getAxis(axis)
+      self.controller:set(input.action, normalAxis(value, input.invert))
     end
   end
 end
