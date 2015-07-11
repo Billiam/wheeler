@@ -14,9 +14,8 @@ do
   fi
 done
 
-if [ ! -f cache_dependencies/github-release ]; then
-  wget -qO .tmp/github-release.tar.bz2 https://github.com/aktau/github-release/releases/download/v0.5.3/linux-amd64-github-release.tar.bz2
-  tar xjf .tmp/github-release.tar.bz2 -C .tmp
-  mv .tmp/bin/linux/amd64/github-release cache_dependencies
-fi
 # wget -qO .tmp/love-macosx-x64.zip https://bitbucket.org/rude/love/downloads/love-0.9.2-macosx-x64.zip
+
+cp ~/.aws/credentials ~/.s3cfg
+sed -i 's/^aws_access_key_id/access_key/g; s/aws_secret_access_key/secret_key/g' ~/.s3cfg
+

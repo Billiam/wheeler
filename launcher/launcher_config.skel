@@ -1,0 +1,4 @@
+return {
+  LOVE_NAME = "%NAME%",
+  VERSION_URL = '%URL%',
+}

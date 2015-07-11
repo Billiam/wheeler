@@ -7,7 +7,6 @@ dependencies:
     - bin/dependencies.sh
 test:
   override:
-    - bin/test.sh
 deployment:
   release:
     owner: Billiam
