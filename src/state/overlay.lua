@@ -6,7 +6,6 @@ local Controller = require('controller')
 local Resource = require('resource')
 local Config = require('config_store')
 local Display = require('display')
-local presets = require('presets')
 
 local mapper
 local controller
@@ -33,7 +32,7 @@ function Overlay.resume()
   Overlay.reload()
 end
 
-function Overlay.enter(current)
+function Overlay.enter()
   love.graphics.setBackgroundColor(25, 25, 25, 0)
 
   Overlay.reload()
@@ -48,7 +47,7 @@ end
 function Overlay.update(dt)
   mapper:update(dt)
   -- cap fps
-  love.timer.sleep(1/30)
+  Display.update(dt)
 end
 
 function Overlay.joystickpressed(joystick, button)

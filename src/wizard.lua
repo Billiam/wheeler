@@ -7,14 +7,14 @@ local CONTROLS = {
   handbrake = 'Press handbrake',
   upshift = 'Shift up',
   downshift = 'Shift down',
-  gear_1 = 'First gear',
-  gear_2 = 'Second gear',
-  gear_3 = 'Third gear',
-  gear_4 = 'Fourth gear',
-  gear_5 = 'Fifth gear',
-  gear_6 = 'Sixth gear',
-  gear_7 = 'Seventh gear',
-  gear_reverse = 'Reverse',
+  gear_1 = '1st gear',
+  gear_2 = '2nd gear',
+  gear_3 = '3rd gear',
+  gear_4 = '4th gear',
+  gear_5 = '5th gear',
+  gear_6 = '6th gear',
+  gear_7 = '7th gear',
+  gear_reverse = 'Reverse gear',
 }
 
 local STAGES = {
@@ -230,9 +230,9 @@ end
 function Wizard:draw()
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.setFont(font)
-  love.graphics.printf(CONTROLS[self:currentStage()], 10, 10, love.graphics.getWidth() - 20)
+  love.graphics.printf(CONTROLS[self:currentStage()], 5, 10, love.graphics.getWidth() - 10)
   
-  love.graphics.printf("Enter to continue", 10, love.graphics.getHeight() - 40, love.graphics.getWidth() - 20)
+  love.graphics.printf("Enter to continue", 5, love.graphics.getHeight() - 40, love.graphics.getWidth() - 10)
 
   -- display current rotation
   if self.stage == 2 then

@@ -23,6 +23,9 @@ local bar_colors = {
   throttle = {0, 180, 0}
 }
 
+local sequential_fade_time = 0.12
+local timers = {}
+
 local function circleHub()
   love.graphics.circle("fill", wheel_x, wheel_y, wheel_radius - 10, 30)
 end
@@ -83,6 +86,15 @@ local function rotation(range, controller)
   return range * controller:get('wheel') - range/2
 end
 
+function Display.update(dt)
+  for i,timer in pairs(timers) do
+    timer.time = timer.time + dt
+    if timer.time > timer.timeout then
+      timers[i] = nil
+    end
+  end
+end
+
 function Display.render(controller, settings)
   love.graphics.setInvertedStencil(circleHub)
     local visible_bars = {}
@@ -108,15 +120,22 @@ function Display.render(controller, settings)
     love.graphics.arc( "fill", wheel_x, wheel_y, wheel_radius, math.rad(rot - 10 - 90), math.rad(rot + 10 - 90))
   love.graphics.setStencil()
   
-  love.graphics.setColor(255, 200, 255, 255)
-
-
   if not isHidden('sequential', settings) then
     if controller:isOn('upshift') then
+      timers.upshift = { timeout = sequential_fade_time, time = 0 }
+    end
+    
+    if timers.upshift then
+      love.graphics.setColor(255, 200, 255, (1 - timers.upshift.time / timers.upshift.timeout) * 255)
       love.graphics.arc("fill", wheel_x, wheel_y, wheel_radius - 10, 0, -math.pi, 30)
     end
     
     if controller:isOn('downshift') then
+      timers.downshift = { timeout = sequential_fade_time, time = 0 }
+    end
+    
+    if timers.downshift then
+      love.graphics.setColor(255, 200, 255, (1 - timers.downshift.time / timers.downshift.timeout) * 255)
       love.graphics.arc("fill", wheel_x, wheel_y, wheel_radius - 10, 0, math.pi, 30)
     end
   end
