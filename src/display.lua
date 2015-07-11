@@ -86,7 +86,7 @@ end
 function Display.render(controller, settings)
   love.graphics.setInvertedStencil(circleHub)
     local visible_bars = {}
-    for i,control in ipairs(bars) do
+    for _,control in ipairs(bars) do
       if not isHidden(control, settings) then
         table.insert(visible_bars, control)
       end
@@ -108,18 +108,35 @@ function Display.render(controller, settings)
     love.graphics.arc( "fill", wheel_x, wheel_y, wheel_radius, math.rad(rot - 10 - 90), math.rad(rot + 10 - 90))
   love.graphics.setStencil()
   
-  love.graphics.setFont(Resource.font.seven_segment[50])
-  love.graphics.setColor(0, 0, 0, 50)
-  love.graphics.print('8', 22, wheel_y - 23)
   love.graphics.setColor(255, 200, 255, 255)
-  love.graphics.print(controller:get('gear'), 22, wheel_y - 23)
 
+
+  if not isHidden('sequential', settings) then
+    if controller:isOn('upshift') then
+      love.graphics.arc("fill", wheel_x, wheel_y, wheel_radius - 10, 0, -math.pi, 30)
+    end
+    
+    if controller:isOn('downshift') then
+      love.graphics.arc("fill", wheel_x, wheel_y, wheel_radius - 10, 0, math.pi, 30)
+    end
+  end
+  
+  if not isHidden('gears', settings) then
+    love.graphics.setFont(Resource.font.seven_segment[50])
+    love.graphics.setColor(0, 0, 0, 50)
+    love.graphics.print('8', 22, wheel_y - 23)
+    love.graphics.setColor(255, 200, 255, 255)
+    love.graphics.print(controller:get('gear'), 22, wheel_y - 23)
+  end
+  
   -- handbrake
-  love.graphics.setColor(0, 0, 0, 50)
-  draw_handbrake(1)
-
-  love.graphics.setColor(255, 127, 0, 255)
-  draw_handbrake(controller:get('handbrake'))
+  if not isHidden('handbrake', settings) then
+    love.graphics.setColor(0, 0, 0, 50)
+    draw_handbrake(1)
+  
+    love.graphics.setColor(255, 127, 0, 255)
+    draw_handbrake(controller:get('handbrake'))
+  end
 end
 
 return Display

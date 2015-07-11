@@ -1,7 +1,6 @@
 local State = require('vendor.state')
 
 local Wizard = require('wizard')
-local Resource = require('resource')
 local Store = require('config_store')
 
 local previous
@@ -18,7 +17,7 @@ function Config.enter(_, previous_state)
   previous = previous_state
   wizard = Wizard.new()
 
-  wizard.config = Store.load()
+  wizard:setConfig(Store.load())
 end
 
 function Config.update(dt)
@@ -29,13 +28,12 @@ function Config.joystickpressed(joystick, button)
   wizard:joystickpressed(joystick, button)
 end
 
-function Config.joystickreleased(joystick, button)
-end
+function Config.joystickreleased() end
 
 function Config.keypressed(key)
   if key == 'return' then
     if not wizard:next() then
-      Store.save(wizard.config)
+      Store.save(wizard:getConfig())
       State.pop()
     end
   elseif key == 'delete' then

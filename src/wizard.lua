@@ -37,7 +37,7 @@ local STAGES = {
 }
 
 local function getJoystick(id)
-  for i,v in ipairs(love.joystick.getJoysticks()) do
+  for _,v in ipairs(love.joystick.getJoysticks()) do
     if v:getGUID() == id then
       return v
     end
@@ -71,7 +71,7 @@ function Wizard:getAxes()
   local axes = {}
 
   local joysticks = love.joystick.getJoysticks()
-  for i, joystick in ipairs(joysticks) do
+  for _, joystick in ipairs(joysticks) do
     axes[joystick:getGUID()] = { joystick:getAxes() }
   end
 
@@ -96,9 +96,19 @@ function Wizard:removeDuplicates()
   if not input then return end
   for key, other in pairs(self.config.controls) do
     
-    if other ~= input and other.joystick == input.joystick and other.input == input.input and other.type == other.type then
+    if other ~= input and other.joystick == input.joystick and other.input == input.input and other.type == input.type then
       self.config.controls[key] = nil
     end
+  end
+end
+
+function Wizard:updateHidden()
+  local key = self:currentStage()
+  if not self.config.controls[key] then
+    self.config.settings[key] = self.config.settings[key] or {}
+    self.config.settings[key].hide = true
+  else
+    self.config.settings[key] = nil
   end
 end
 
@@ -110,6 +120,49 @@ function Wizard:next()
   else
     return false
   end
+end
+
+local function anyActive(list, config)
+  for _, key in ipairs(list) do
+    if config.controls[key] then
+      return true
+    end
+  end
+
+  return false
+end
+
+function Wizard:setConfig(config)
+  self.config = config
+end
+
+function Wizard:getConfig()
+  local config = self.config
+  
+  local hidden = { 'throttle', 'brake', 'clutch', 'handbrake' }
+  for _,key in ipairs(hidden) do
+    local exists = config.controls[key]
+    if exists then
+      config.settings[key] = nil
+    else
+      config.settings[key] = { hide = true }
+    end
+  end
+  
+  if anyActive({'upshift', 'downshift'}, config) then
+    config.settings.sequential = nil
+  else
+    config.settings.sequential = { hide = true }
+  end
+  
+  local gears = { 'gear_1', 'gear_2', 'gear_3', 'gear_4', 'gear_5', 'gear_6', 'gear_7', 'gear_reverse' }
+  if anyActive(gears, config) then
+    config.settings.gears = nil
+  else
+    config.settings.gears = { hide = true }
+  end
+  
+  return config
 end
 
 function Wizard:getActive()
@@ -127,8 +180,7 @@ function Wizard:getActive()
   end
 end
 
-function Wizard:update(dt)
---  if self.active_input then
+function Wizard:update()
   if self.stage == 2 then
     self:update_rotation()
   else
