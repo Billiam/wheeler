@@ -35,7 +35,7 @@ function Overlay.resume()
 end
 
 function Overlay.enter()
-  love.graphics.setBackgroundColor(25, 25, 25, 0)
+  love.graphics.setBackgroundColor(0, 0, 0, 0)
 
   Overlay.reload()
 end
