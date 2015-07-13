@@ -234,7 +234,7 @@ function Wizard:draw()
   love.graphics.setFont(font)
   love.graphics.printf(CONTROLS[self:currentStage()], 5, 10, love.graphics.getWidth() - 10)
   
-  love.graphics.printf("Enter to continue", 5, love.graphics.getHeight() - 40, love.graphics.getWidth() - 10)
+  love.graphics.printf("Enter to continue", 5, love.graphics.getHeight() - 30, love.graphics.getWidth() - 10)
 
   -- display current rotation
   if self.stage == 2 then
@@ -242,7 +242,11 @@ function Wizard:draw()
   else
     local current = self.config.controls[self:currentStage()]
     if current then
-      love.graphics.print((current.invert and "-" or "") .. current.type .. " " .. current.input, 10, 100)
+      local joystick = getJoystick(current.joystick)
+      if joystick then
+        love.graphics.print(joystick:getName(), 5, 80)
+      end
+      love.graphics.print((current.invert and "-" or "") .. current.type .. " " .. current.input, 5, 100)
     end
   end
 end
