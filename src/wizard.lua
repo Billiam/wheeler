@@ -1,3 +1,5 @@
+local String = require('lib.string')
+
 local CONTROLS = {
   wheel = 'Turn wheel to lock',
   wheel_rotation = 'Hold wheel at 90 degrees',
@@ -36,6 +38,12 @@ local STAGES = {
   'gear_reverse',
 }
 
+local AXES = {
+  ['1'] = 'X',
+  ['2'] = 'Y',
+  ['3'] = 'Z',
+}
+
 local function getJoystick(id)
   for _,v in ipairs(love.joystick.getJoysticks()) do
     if v:getGUID() == id then
@@ -65,6 +73,27 @@ Wizard.new = function()
   instance:cacheDefaults()
 
   return instance
+end
+
+
+local function anyActive(list, config)
+  for _, key in ipairs(list) do
+    if config.controls[key] then
+      return true
+    end
+  end
+
+  return false
+end
+
+local function input_description(input)
+  local invert = input.invert and "- " or ""
+  local axis = AXES[input.input]
+  if input.type == 'axis' and axis then
+    return invert  .. axis .. " axis"
+  else
+    return invert .. input.type .. " " .. input.input
+  end
 end
 
 function Wizard:getAxes()
@@ -122,16 +151,6 @@ function Wizard:next()
   end
 end
 
-local function anyActive(list, config)
-  for _, key in ipairs(list) do
-    if config.controls[key] then
-      return true
-    end
-  end
-
-  return false
-end
-
 function Wizard:setConfig(config)
   self.config = config
 end
@@ -172,11 +191,12 @@ function Wizard:getActive()
   
   for id, axes in pairs(current) do
     local defaults = self.defaults[id]
-
-    for index, axis in ipairs(axes) do
-      local difference = axis - defaults[index]
-      if math.abs(difference) > 0.45 then
-        return { type = 'axis', input = tostring(index), joystick = id, invert = difference < 0 }
+    if defaults then
+      for index, axis in ipairs(axes) do
+        local difference = axis - defaults[index]
+        if math.abs(difference) > 0.45 then
+          return { type = 'axis', input = tostring(index), joystick = id, invert = difference < 0 }
+        end
       end
     end
   end
@@ -201,6 +221,7 @@ function Wizard:update_rotation()
   local joystick = getJoystick(input.joystick)
   if not joystick or input.type ~= 'axis' then
     self:next()
+    return
   end
   
   local value = math.abs(joystick:getAxis(input.input))
@@ -230,23 +251,28 @@ function Wizard:clear()
 end
 
 function Wizard:draw()
+  local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+  
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.setFont(font)
-  love.graphics.printf(CONTROLS[self:currentStage()], 5, 10, love.graphics.getWidth() - 10)
+  love.graphics.printf(CONTROLS[self:currentStage()], 5, 5, w - 10)
   
-  love.graphics.printf("Enter to continue", 5, love.graphics.getHeight() - 30, love.graphics.getWidth() - 10)
+  love.graphics.printf("Enter to continue", 5, h - 30, w - 10)
 
   -- display current rotation
   if self.stage == 2 then
-    love.graphics.print(self.config.settings.rotation .. '°', 10, 100)
+    love.graphics.print(self.config.settings.rotation .. '°', 5, 120)
   else
     local current = self.config.controls[self:currentStage()]
     if current then
       local joystick = getJoystick(current.joystick)
-      if joystick then
-        love.graphics.print(joystick:getName(), 5, 80)
-      end
-      love.graphics.print((current.invert and "-" or "") .. current.type .. " " .. current.input, 5, 100)
+      local name = joystick and String.truncate_lines(joystick:getName(), 2, w-10) or "unknown"
+      
+      love.graphics.setColor(90, 90, 90, 255)
+      love.graphics.printf(name, 5, 80, w - 10)
+      
+      love.graphics.setColor(255, 255, 255, 255)
+      love.graphics.print(input_description(current), 5, 120)
     end
   end
 end
