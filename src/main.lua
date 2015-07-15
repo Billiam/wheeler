@@ -1,10 +1,11 @@
 require('vendor.background_joystick')
 
+local Draggable = require('lib.draggable')
 local State = require('vendor.state')
 local Resource = require('resource')
 
 local function init(arg)
-  for i,argument in ipairs(arg) do
+  for _,argument in ipairs(arg) do
     if argument == '--debug' then
       io.stdout:setvbuf("no")
       
@@ -12,6 +13,8 @@ local function init(arg)
       _G.dump = function(...) print(inspect(...)) end
     end
   end
+
+  love.mouse.setCursor(love.mouse.getSystemCursor('sizeall'))
 end
 
 function love.load(arg)
@@ -25,6 +28,18 @@ end
 
 function love.draw()
   State.current().draw()
+end
+
+function love.mousemoved(x, y, dx, dy)
+  Draggable.move(dx, dy)
+end
+
+function love.mousepressed(x, y)
+  Draggable.start(x, y)
+end
+
+function love.mousereleased(x, y)
+  Draggable.stop(x, y)
 end
 
 function love.joystickreleased(joystick, button)
