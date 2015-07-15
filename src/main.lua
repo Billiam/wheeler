@@ -1,6 +1,6 @@
 require('vendor.background_joystick')
 
-local Draggable = require('lib.draggable')
+local Draggable = require('vendor.draggable')
 local State = require('vendor.state')
 local Resource = require('resource')
 
@@ -34,12 +34,12 @@ function love.mousemoved(x, y, dx, dy)
   Draggable.move(dx, dy)
 end
 
-function love.mousepressed(x, y)
-  Draggable.start(x, y)
+function love.mousepressed()
+  Draggable.start()
 end
 
-function love.mousereleased(x, y)
-  Draggable.stop(x, y)
+function love.mousereleased()
+  Draggable.stop()
 end
 
 function love.joystickreleased(joystick, button)

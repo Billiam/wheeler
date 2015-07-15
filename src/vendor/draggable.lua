@@ -1,5 +1,7 @@
 local Draggable = {}
 
+local previous_relative_mode
+
 local dragging = false
 
 function Draggable.move(dx, dy)
@@ -22,18 +24,24 @@ function Draggable.move(dx, dy)
   end
 end
 
-function Draggable.start(x, y)
-  dragging = {x = x, y = y}
+function Draggable.start()
+  dragging = {x = love.mouse.getX(), y = love.mouse.getY()}
+
+  previous_relative_mode = love.mouse.getRelativeMode()
   love.mouse.setRelativeMode(true)
 end
 
-function Draggable.stop(x, y)
-  love.mouse.setRelativeMode(false)
+function Draggable.stop()
+  love.mouse.setRelativeMode(previous_relative_mode)
 
   if dragging then
     love.mouse.setPosition(dragging.x, dragging.y)
     dragging = false
   end
+end
+
+function Draggable.dragging()
+  return dragging
 end
 
 return Draggable
