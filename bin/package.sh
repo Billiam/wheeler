@@ -10,6 +10,7 @@ VERSION=`head -n 1 VERSION`
 mkdir -p .tmp/love-win32
 cp cache_dependencies/love-win32/*.dll .tmp/love-win32
 cp cache_dependencies/love-win32/license.txt .tmp/love-win32
+cp build/readme.txt .tmp/love-win32
 cat build/win/32/love.exe $CIRCLE_ARTIFACTS/app.love > .tmp/love-win32/wheeler.exe
 (cd .tmp/love-win32 && zip -q -r $CIRCLE_ARTIFACTS/wheeler-win32.zip .)
 
